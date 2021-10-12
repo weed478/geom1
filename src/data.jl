@@ -9,19 +9,18 @@ export Dataset,
 
 using ..Geometry
 
-import Random
-
 struct Dataset{T}
     name::String
     pnts::Vector{Point{T}}
     line::Segment{T}
-    e::T
+    # plot parameters
+    etyp::T
     emin::T
     emax::T
     markersize::Integer
 end
 
-function convertdataset(T::Type, d::Dataset)
+function convertdataset(T::Type, d::Dataset)::Dataset{T}
     Dataset{T}(
         d.name,
         map(d.pnts) do p
@@ -31,14 +30,12 @@ function convertdataset(T::Type, d::Dataset)
             Point{T}(d.line.A.x, d.line.A.y),
             Point{T}(d.line.B.x, d.line.B.y)
         ),
-        T(d.e),
+        T(d.etyp),
         T(d.emin),
         T(d.emax),
         d.markersize
     )
 end
-
-Random.seed!(42)
 
 # generate n random numbers in range [lo,hi]
 function uniformrandom(n::Integer, lo::T, hi::T)::Vector{T} where T
@@ -75,7 +72,7 @@ function genpoints(circ::Circle{T}, n::Integer)::Vector{Point{T}} where T
     Point.(zip(xs, ys)) |> collect
 end
 
-gendataseta(T::Type)::Dataset{T} = Dataset(
+gendataseta(T::Type)::Dataset{T} = Dataset{T}(
     "A",
     genpoints(
         Rect(Point{T}(-1000, -1000), Point{T}(1000, 1000)),
@@ -91,7 +88,7 @@ gendataseta(T::Type)::Dataset{T} = Dataset(
     1
 )
 
-gendatasetb(T::Type)::Dataset{T} = Dataset(
+gendatasetb(T::Type)::Dataset{T} = Dataset{T}(
     "B",
     genpoints(
         Rect(Point{T}(-10^14, -10^14), Point{T}(10^14, 10^14)),
@@ -107,7 +104,7 @@ gendatasetb(T::Type)::Dataset{T} = Dataset(
     1
 )
 
-gendatasetc(T::Type)::Dataset{T} = Dataset(
+gendatasetc(T::Type)::Dataset{T} = Dataset{T}(
     "C",
     genpoints(
         Circle{T}(Point{T}(0, 0), 100),
@@ -131,11 +128,12 @@ function gendatasetd(T::Type)::Dataset{T}
     B = Point{T}(1, .1)
 
     # calculate line equation
-    l = tofunctional(Segment(A, B))
+    f = tofunction(Segment(A, B))
 
     Dataset(
         "D",
-        Point.(zip(xs, f(l).(xs))) |> collect,
+        # for each generated X calculate Y
+        Point.(zip(xs, f.(xs))) |> collect,
         Segment{T}(
             Point{T}(-1, 0),
             Point{T}(1, .1)

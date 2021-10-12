@@ -4,11 +4,9 @@ export Point,
        Rect,
        Circle,
        Segment,
-       Line,
-       tofunctional,
-       f,
-       pointorientationdet3x3,
-       pointorientationdet2x2
+       tofunction,
+       orient3x3,
+       orient2x2
 
 struct Point{T}
     x::T
@@ -40,26 +38,19 @@ struct Segment{T}
     B::Point{T}
 end
 
-# line as function y(x) = ax + b
-struct Line{T}
-    a::T
-    b::T
-end
-
-# get lambda function from a line object
-f(l::Line{T}) where T = x::T -> l.a * x + l.b
-
-# convert segment to line
+# convert segment to function f(x) = ax + b
 # y = ax + b
 # a = dy/dx
 # b = y - ax
-function tofunctional(seg::Segment{T})::Line{T} where T
+function tofunction(seg::Segment)
     a = (seg.B.y - seg.A.y) / (seg.B.x - seg.A.x)
     b = seg.A.y - a * seg.A.x
-    Line(a, b)
+    x -> a*x + b
 end
 
-function pointorientationdet3x3(detfn, e::T, A::Point{T}, l::Segment{T})::Int where T
+# orientation functions
+
+function orient3x3(detfn, e::T, l::Segment{T}, A::Point{T})::Int where T
     a = l.A
     b = l.B
     c = A
@@ -79,7 +70,7 @@ function pointorientationdet3x3(detfn, e::T, A::Point{T}, l::Segment{T})::Int wh
     end
 end
 
-function pointorientationdet2x2(detfn, e::T, A::Point{T}, l::Segment{T})::Int where T
+function orient2x2(detfn, e::T, l::Segment{T}, A::Point{T})::Int where T
     a = l.A
     b = l.B
     c = A
