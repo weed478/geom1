@@ -4,6 +4,8 @@ using ..Geometry
 using ..Data
 using ..AnalysisHelpers
 
+using Plots
+
 import LinearAlgebra
 import Random
 
@@ -20,16 +22,30 @@ function gendatasets(T::Type)::Vector{Dataset{T}}
     map(g -> g(T), datagens)
 end
 
+function plotdatasets()
+    T = Float64
+    for data in gendatasets(T)
+        title = "dataset-$(data.name)"
+        println(title)
+        scatter(
+            Tuple.(data.pnts),
+            markersize=data.markersize,
+            markeropacity=0.4,
+            markerstrokewidth=0,
+            color=:blue,
+            label=false,
+            ratio=1,
+            title=title,
+        )
+        savefig("output/$title.png")
+    end
+end
+
 function basicclassification()
-    # original type
-    U = Float64
+    T = Float64
+    datasets = gendatasets(T)
 
-    Ts = [Float32, Float64]
-    
-    datasets = gendatasets(U)    
-
-    for d in datasets, T in Ts
-        d = convertdataset(T, d)
+    for d in datasets
         plotclassification(
             d,
             AlgoConfig(

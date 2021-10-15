@@ -6,6 +6,7 @@ include("analysishelpers.jl")
 include("analysis.jl")
 
 function main()
+    Analysis.plotdatasets()
     Analysis.basicclassification()
     Analysis.epsilonvpoints()
     Analysis.widerdiff()
