@@ -42,17 +42,20 @@ function plotdatasets()
 end
 
 function basicclassification()
-    T = Float64
-    datasets = gendatasets(T)
+    Ts = [Float32, Float64]
+    orients = [orient2x2, orient3x3]
+    dets = [LinearAlgebra.det, manualdet]
+    datasets = gendatasets(Float32)
 
-    for d in datasets
+    for d=datasets, T=Ts, orient=orients, det=dets
+        d = convertdataset(T, d)
         plotclassification(
             d,
             AlgoConfig(
-                orient3x3,
-                LinearAlgebra.det,
+                orient,
+                det,
                 d.etyp,
-                "$T-3x3-builtin-$(d.etyp)"
+                "$T-$orient-$det"
             )
         )
     end
@@ -68,7 +71,7 @@ function epsilonvpoints()
                 orient3x3,
                 LinearAlgebra.det,
                 d.etyp,
-                "$T-3x3-builtin-$(d.etyp)"
+                "$(d.emin)-$(d.emax)"
             ),
             range(d.emin, d.emax, length=30)
         )
@@ -85,13 +88,13 @@ function widerdiff()
             orient3x3,
             LinearAlgebra.det,
             d.etyp,
-            "$T-3x3-builtin-$(d.etyp)"
+            "$(d.etyp)"
         ),
         AlgoConfig{T}(
             orient3x3,
             LinearAlgebra.det,
             d.etyp * 1.2,
-            "$T-3x3-builtin-$(d.etyp * 1.2)"
+            "$(d.etyp * 1.2)"
         )
     )
 
@@ -108,15 +111,74 @@ function widerdiff()
             orient3x3,
             LinearAlgebra.det,
             e1,
-            "$T-3x3-builtin-$e1"
+            "$e1"
         ),
         AlgoConfig{T}(
             orient3x3,
             LinearAlgebra.det,
             e2,
-            "$T-3x3-builtin-$e2"
+            "$e2"
         )
     )
+end
+
+function detcomp()
+    T = Float64
+    for d = gendatasets(T)
+        plotcomparison(
+            d,
+            AlgoConfig{T}(
+                orient3x3,
+                LinearAlgebra.det,
+                d.etyp,
+                "3x3"
+            ),
+            AlgoConfig{T}(
+                orient2x2,
+                LinearAlgebra.det,
+                d.etyp,
+                "2x2"
+            )
+        )
+
+        plotcomparison(
+            d,
+            AlgoConfig{T}(
+                orient2x2,
+                LinearAlgebra.det,
+                d.etyp,
+                "builtin"
+            ),
+            AlgoConfig{T}(
+                orient2x2,
+                manualdet,
+                d.etyp,
+                "manual"
+            )
+        )
+    end
+end
+
+function typecomp()
+    for d=gendatasets(Float32)
+        T = Float32
+        U = Float64
+        plotcomparison(
+            d,
+            AlgoConfig{T}(
+                orient3x3,
+                LinearAlgebra.det,
+                T(d.etyp),
+                "$T"
+            ),
+            AlgoConfig{U}(
+                orient3x3,
+                LinearAlgebra.det,
+                U(d.etyp),
+                "$U"
+            )
+        )
+    end
 end
 
 end # module Analysis

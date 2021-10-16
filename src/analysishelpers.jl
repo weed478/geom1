@@ -26,12 +26,7 @@ function manualdet(M::Matrix{T})::T where T
     if size(M) == (2, 2)
         M[1,1] * M[2,2] - M[1,2] * M[2,1]
     elseif size(M) == (3, 3)
-          M[1,1] * M[2,2] * M[3,3]
-        + M[1,2] * M[2,3] * M[3,1]
-        + M[1,3] * M[2,1] * M[3,2]
-        - M[1,3] * M[2,2] * M[3,1]
-        - M[1,2] * M[2,1] * M[3,3]
-        - M[1,1] * M[2,3] * M[3,2]
+          M[1,1] * M[2,2] * M[3,3] + M[1,2] * M[2,3] * M[3,1] + M[1,3] * M[2,1] * M[3,2] - M[3,1] * M[2,2] * M[1,3] - M[3,2] * M[2,3] * M[1,1] - M[3,3] * M[2,1] * M[1,2]
     else
         error("Invalid matrix size $(size(M))")
     end
@@ -196,18 +191,23 @@ function plotcomparison(d::Dataset{T}, c1::AlgoConfig{U}, c2::AlgoConfig{V}) whe
     title = "comp-$(d.name)-$(c1.name)-vs-$(c2.name)"
     println(title)
 
-    # create orientation function for a config
-    orient(c) = p -> c.orientfn(c.detfn, c.e, d.line, p)
+    d1 = convertdataset(U, d)
+    d2 = convertdataset(V, d)
+
+    orient1(P) = c1.orientfn(c1.detfn, c1.e, d1.line, P)
+    orient2(P) = c2.orientfn(c2.detfn, c2.e, d2.line, P)
 
     # get area left/right bounds
     x1 = minimum(getfield.(d.pnts, :x))
     x2 = maximum(getfield.(d.pnts, :x))
 
-    # find interesting points
-    pnts = filter(d.pnts) do P
-        # different classification
-        orient(c1)(P) != orient(c2)(P)
+    interesting = map(1:length(d.pnts)) do i
+        orient1(d1.pnts[i]) != orient2(d2.pnts[i])
     end
+
+    pnts = d.pnts[filter(1:length(d.pnts)) do i
+        interesting[i]
+    end]
     
     plt = scatter(
         Tuple.(pnts),

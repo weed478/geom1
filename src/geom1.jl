@@ -6,10 +6,20 @@ include("analysishelpers.jl")
 include("analysis.jl")
 
 function main()
-    Analysis.plotdatasets()
-    Analysis.basicclassification()
-    Analysis.epsilonvpoints()
-    Analysis.widerdiff()
+    jobs = [
+        Analysis.plotdatasets,
+        Analysis.basicclassification,
+        Analysis.epsilonvpoints,
+        Analysis.widerdiff,
+        Analysis.detcomp,
+        Analysis.typecomp,
+    ]
+
+    for (i, j) in enumerate(jobs)
+        println("$i/$(length(jobs))")
+        j()
+    end
+
     nothing
 end
 
