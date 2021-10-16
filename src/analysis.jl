@@ -94,6 +94,29 @@ function widerdiff()
             "$T-3x3-builtin-$(d.etyp * 1.2)"
         )
     )
+
+    d = gendatasets(T)[4]
+
+    emin = 0
+    emax = d.emax
+    e1 = emin + 0.1 * (emax - emin)
+    e2 = emin + 0.2 * (emax - emin)
+
+    plotcomparison(
+        d,
+        AlgoConfig{T}(
+            orient3x3,
+            LinearAlgebra.det,
+            e1,
+            "$T-3x3-builtin-$e1"
+        ),
+        AlgoConfig{T}(
+            orient3x3,
+            LinearAlgebra.det,
+            e2,
+            "$T-3x3-builtin-$e2"
+        )
+    )
 end
 
 end # module Analysis
