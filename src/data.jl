@@ -117,7 +117,7 @@ gendatasetc(T::Type)::Dataset{T} = Dataset{T}(
     T(10),
     T(0),
     T(250),
-    3
+    2
 )
 
 function gendatasetd(T::Type)::Dataset{T}
@@ -141,7 +141,7 @@ function gendatasetd(T::Type)::Dataset{T}
         T(1e-15),
         T(0),
         T(2e-14),
-        3
+        2
     )
 end
 
