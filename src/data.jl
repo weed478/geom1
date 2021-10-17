@@ -11,7 +11,7 @@ using ..Geometry
 
 struct Dataset{T}
     name::String
-    pnts::Vector{Point{T}}
+    pnts::AbstractVector{Point{T}}
     line::Segment{T}
     # plot parameters
     etyp::T
@@ -20,30 +20,42 @@ struct Dataset{T}
     markersize::Integer
 end
 
-function convertdataset(T::Type, d::Dataset)::Dataset{T}
-    Dataset{T}(
-        d.name,
-        map(d.pnts) do p
-            Point{T}(p.x, p.y)
-        end,
-        Segment{T}(
-            Point{T}(d.line.A.x, d.line.A.y),
-            Point{T}(d.line.B.x, d.line.B.y)
-        ),
-        T(d.etyp),
-        T(d.emin),
-        T(d.emax),
-        d.markersize
-    )
-end
+Dataset(
+    name::String,
+    pnts::AbstractVector{Point{T}},
+    line::Segment{T},
+    etyp::T,
+    emin::T,
+    emax::T,
+    markersize::Integer
+) where T = Dataset{T}(
+    name,
+    pnts,
+    line,
+    etyp,
+    emin,
+    emax,
+    markersize
+)
+
+Dataset(::Type{T}, d::Dataset{T}) where T = d
+Dataset(::Type{T}, d::Dataset) where T = Dataset{T}(
+    d.name,
+    Point.(T, d.pnts),
+    Segment(T, d.line),
+    T(d.etyp),
+    T(d.emin),
+    T(d.emax),
+    d.markersize
+)
 
 # generate n random numbers in range [lo,hi]
-function uniformrandom(n::Integer, lo::T, hi::T)::Vector{T} where T
+function uniformrandom(::Type{T}, n::Integer, lo::T, hi::T)::Vector{T} where T
     rand(T, n) * (hi - lo) .+ lo
 end
 
 # create n points inside rect
-function genpoints(rect::Rect{T}, n::Integer)::Vector{Point{T}} where T
+function genpoints(::Type{T}, rect::Rect{T}, n::Integer)::Vector{Point{T}} where T
     # unpack area coords
     xlo = rect.A.x
     xhi = rect.B.x
@@ -51,19 +63,19 @@ function genpoints(rect::Rect{T}, n::Integer)::Vector{Point{T}} where T
     yhi = rect.B.y
 
     # generate n random coords in range [xlo, xhi], [ylo, yhi]
-    xs = uniformrandom(n, xlo, xhi)
-    ys = uniformrandom(n, ylo, yhi)
+    xs = uniformrandom(T, n, xlo, xhi)
+    ys = uniformrandom(T, n, ylo, yhi)
 
     Point.(zip(xs, ys)) |> collect
 end
 
 # create n points on circle border
-function genpoints(circ::Circle{T}, n::Integer)::Vector{Point{T}} where T
+function genpoints(::Type{T}, circ::Circle{T}, n::Integer)::Vector{Point{T}} where T
     r = circ.r
     x0, y0 = Tuple(circ.O)
 
     # random angles
-    phis = uniformrandom(n, 0.f0, 2.f0pi)
+    phis = uniformrandom(T, n, T(0), T(2pi))
     
     # gen coords
     xs = x0 .+ r * cos.(phis)
@@ -72,65 +84,74 @@ function genpoints(circ::Circle{T}, n::Integer)::Vector{Point{T}} where T
     Point.(zip(xs, ys)) |> collect
 end
 
-gendataseta(T::Type)::Dataset{T} = Dataset{T}(
-    "A",
-    genpoints(
-        Rect(Point{T}(-1000, -1000), Point{T}(1000, 1000)),
-        10^5
-    ),
-    Segment{T}(
-        Point{T}(-1, 0),
-        Point{T}(1, .1)
-    ),
-    T(100),
-    T(0),
-    T(200),
-    1
-)
+function gendataseta(::Type{T})::Dataset{T} where T
+    Dataset{T}(
+        "A",
+        genpoints(
+            T,
+            Rect(Point{T}(-1000, -1000), Point{T}(1000, 1000)),
+            10^5
+        ),
+        Segment{T}(
+            Point{T}(-1, 0),
+            Point{T}(1, .1)
+        ),
+        T(100),
+        T(0),
+        T(200),
+        1
+    )
+end
 
-gendatasetb(T::Type)::Dataset{T} = Dataset{T}(
-    "B",
-    genpoints(
-        Rect(Point{T}(-10^14, -10^14), Point{T}(10^14, 10^14)),
-        10^5
-    ),
-    Segment{T}(
-        Point{T}(-1, 0),
-        Point{T}(1, .1)
-    ),
-    T(10e12),
-    T(1e12),
-    T(20e12),
-    1
-)
+function gendatasetb(::Type{T})::Dataset{T} where T
+    Dataset{T}(
+        "B",
+        genpoints(
+            T,
+            Rect(Point{T}(-10^14, -10^14), Point{T}(10^14, 10^14)),
+            10^5
+        ),
+        Segment{T}(
+            Point{T}(-1, 0),
+            Point{T}(1, .1)
+        ),
+        T(10e12),
+        T(1e12),
+        T(20e12),
+        1
+    )
+end
 
-gendatasetc(T::Type)::Dataset{T} = Dataset{T}(
-    "C",
-    genpoints(
-        Circle{T}(Point{T}(0, 0), 100),
-        1000
-    ),
-    Segment{T}(
-        Point{T}(-1, 0),
-        Point{T}(1, .1)
-    ),
-    T(10),
-    T(0),
-    T(250),
-    2
-)
+function gendatasetc(::Type{T})::Dataset{T} where T
+    Dataset{T}(
+        "C",
+        genpoints(
+            T,
+            Circle{T}(Point{T}(0, 0), 100),
+            1000
+        ),
+        Segment{T}(
+            Point{T}(-1, 0),
+            Point{T}(1, .1)
+        ),
+        T(10),
+        T(0),
+        T(250),
+        2
+    )
+end
 
-function gendatasetd(T::Type)::Dataset{T}
+function gendatasetd(::Type{T})::Dataset{T} where T
     # gen X coords
-    xs = uniformrandom(1000, T(-1000), T(1000))
+    xs = uniformrandom(T, 1000, T(-1000), T(1000))
 
     A = Point{T}(-1, 0)
     B = Point{T}(1, .1)
 
     # calculate line equation
-    f = tofunction(Segment(A, B))
+    f = tofunction(Segment{T}(A, B))
 
-    Dataset(
+    Dataset{T}(
         "D",
         # for each generated X calculate Y
         Point.(zip(xs, f.(xs))) |> collect,

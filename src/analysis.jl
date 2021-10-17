@@ -11,7 +11,7 @@ import Random
 
 const SEED = 42
 
-function gendatasets(T::Type)::Vector{Dataset{T}}
+function gendatasets(::Type{T})::Vector{Dataset{T}} where T
     Random.seed!(SEED)
     datagens = [
         gendataseta,
@@ -48,10 +48,10 @@ function basicclassification()
     datasets = gendatasets(Float32)
 
     for d=datasets, T=Ts, orient=orients, det=dets
-        d = convertdataset(T, d)
+        d = Dataset(T, d)
         plotclassification(
             d,
-            AlgoConfig(
+            AlgoConfig{T}(
                 orient,
                 det,
                 d.etyp,
@@ -124,58 +124,62 @@ end
 
 function detcomp()
     T = Float64
-    for d = gendatasets(T)
-        plotcomparison(
-            d,
-            AlgoConfig{T}(
-                orient3x3,
-                LinearAlgebra.det,
-                d.etyp,
-                "3x3"
-            ),
-            AlgoConfig{T}(
-                orient2x2,
-                LinearAlgebra.det,
-                d.etyp,
-                "2x2"
+    for d=gendatasets(T)
+        for det=[LinearAlgebra.det, manualdet]
+            plotcomparison(
+                d,
+                AlgoConfig{T}(
+                    orient3x3,
+                    det,
+                    d.etyp,
+                    "3x3-$det"
+                ),
+                AlgoConfig{T}(
+                    orient2x2,
+                    det,
+                    d.etyp,
+                    "2x2-$det"
+                )
             )
-        )
+        end
 
-        plotcomparison(
-            d,
-            AlgoConfig{T}(
-                orient2x2,
-                LinearAlgebra.det,
-                d.etyp,
-                "builtin"
-            ),
-            AlgoConfig{T}(
-                orient2x2,
-                manualdet,
-                d.etyp,
-                "manual"
+        for orient=[orient2x2, orient3x3]
+            plotcomparison(
+                d,
+                AlgoConfig{T}(
+                    orient,
+                    LinearAlgebra.det,
+                    d.etyp,
+                    "$orient-builtin"
+                ),
+                AlgoConfig{T}(
+                    orient,
+                    manualdet,
+                    d.etyp,
+                    "$orient-manual"
+                )
             )
-        )
+        end
     end
 end
 
 function typecomp()
-    for d=gendatasets(Float32)
+    for d=gendatasets(Float32), det=[LinearAlgebra.det, manualdet], orient=[orient2x2, orient3x3]
         T = Float32
         U = Float64
         plotcomparison(
             d,
             AlgoConfig{T}(
-                orient3x3,
-                LinearAlgebra.det,
+                orient,
+                det,
                 T(d.etyp),
-                "$T"
+                "$T-$orient-$det"
             ),
             AlgoConfig{U}(
-                orient3x3,
-                LinearAlgebra.det,
+                orient,
+                det,
                 U(d.etyp),
-                "$U"
+                "$U-$orient-$det"
             )
         )
     end

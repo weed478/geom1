@@ -38,7 +38,7 @@ function plotclassification(data::Dataset{T}, config::AlgoConfig{T}) where T
     AB = data.line
     
     # point orientation vs AB
-    orient(P) = config.orientfn(config.detfn, config.e, AB, P)
+    orient(P::Point{T}) = config.orientfn(config.detfn, config.e, AB, P)
 
     title = "class-$(data.name)-$(config.name)"
     println(title)
@@ -154,10 +154,10 @@ function plotclassification(data::Dataset{T}, config::AlgoConfig{T}) where T
     )
 
     # save final plots
-    savefig(pltcombined, "output/$title-combined.png")
-    savefig(pltpos, "output/$title-pos.png")
-    savefig(pltneg, "output/$title-neg.png")
-    savefig(pltline, "output/$title-line.png")
+    savefig(pltcombined, "output/$title-1combined.png")
+    savefig(pltpos, "output/$title-3pos.png")
+    savefig(pltneg, "output/$title-4neg.png")
+    savefig(pltline, "output/$title-2line.png")
 end
 
 # plot epsilon vs number of points where abs(det) < epsilon
@@ -166,7 +166,7 @@ function plotepsilon(data::Dataset{T}, c::AlgoConfig{T}, es::AbstractRange{T}) w
     println(title)
 
     # epsilon and point
-    orient(e, P) = c.orientfn(c.detfn, e, data.line, P)
+    orient(e::T, P::Point{T}) = c.orientfn(c.detfn, e, data.line, P)
 
     # X axis = epsilons
     # Y axis = number of points on line
@@ -191,11 +191,11 @@ function plotcomparison(d::Dataset{T}, c1::AlgoConfig{U}, c2::AlgoConfig{V}) whe
     title = "comp-$(d.name)-$(c1.name)-vs-$(c2.name)"
     println(title)
 
-    d1 = convertdataset(U, d)
-    d2 = convertdataset(V, d)
+    d1 = Dataset(U, d)
+    d2 = Dataset(V, d)
 
-    orient1(P) = c1.orientfn(c1.detfn, c1.e, d1.line, P)
-    orient2(P) = c2.orientfn(c2.detfn, c2.e, d2.line, P)
+    orient1(P::Point{U}) = c1.orientfn(c1.detfn, c1.e, d1.line, P)
+    orient2(P::Point{V}) = c2.orientfn(c2.detfn, c2.e, d2.line, P)
 
     # get area left/right bounds
     x1 = minimum(getfield.(d.pnts, :x))
