@@ -89,7 +89,7 @@ function gendataseta(::Type{T})::Dataset{T} where T
         "A",
         genpoints(
             T,
-            Rect(Point{T}(-1000, -1000), Point{T}(1000, 1000)),
+            Rect{T}(Point{T}(-1000, -1000), Point{T}(1000, 1000)),
             10^5
         ),
         Segment{T}(
@@ -108,7 +108,7 @@ function gendatasetb(::Type{T})::Dataset{T} where T
         "B",
         genpoints(
             T,
-            Rect(Point{T}(-10^14, -10^14), Point{T}(10^14, 10^14)),
+            Rect{T}(Point{T}(-10^14, -10^14), Point{T}(10^14, 10^14)),
             10^5
         ),
         Segment{T}(
