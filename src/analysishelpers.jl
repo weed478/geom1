@@ -212,7 +212,7 @@ function plotcomparison(d::Dataset{T}, c1::AlgoConfig{U}, c2::AlgoConfig{V}) whe
     plt = scatter(
         Tuple.(pnts),
         markersize=d.markersize,
-        markeropacity=0.4,
+        markeropacity=1.0,
         markerstrokewidth=0,
         lims=(x1, x2),
         color=:red,
