@@ -23,7 +23,7 @@ Base.convert(::Type{Point{T}}, p::Tuple{T, T}) where T = Point(p)
 
 # conversion
 Point(::Type{T}, p::Point{T}) where T = p
-Point(::Type{T}, p::Point) where T = Point{T}(convert(T, p.x), convert(T, p.y))
+Point(::Type{T}, p::Point) where T = Point{T}(T(p.x), T(p.y))
 
 # rect between 2 points
 struct Rect{T}
