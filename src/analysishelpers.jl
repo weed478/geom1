@@ -32,6 +32,65 @@ function manualdet(M::Matrix{T})::T where T
     end
 end
 
+function findepsrange(d::Dataset{T})::Tuple{T, T} where T
+    orient(e::T, p::Point{T}) = orient3x3(det, e, d.line, p)
+    countpoints(e::T) = count(p -> orient(e, p) == 0, d.pnts)
+    
+    npnts = length(d.pnts)
+
+    e::T = one(T)
+    emax::T = e
+    emin::T = e
+    
+    if (countpoints(e) >= npnts)
+        while countpoints(emin) > 0
+            emin /= 10
+        end
+        emax = nextfloat(emin)
+        while countpoints(emax) < npnts
+            emax *= 10
+        end
+        emin/10, emax*10
+    else
+        while countpoints(emax) < npnts
+            emax *= 10
+        end
+        emin = prevfloat(emax)
+        while countpoints(emin) > 0
+            emin /= 10
+        end
+        emin/10, emax*10
+    end
+end
+
+function findeps(d::Dataset{T}, npnts::Integer, error::Integer)::T where T
+    emin, emax = findepsrange(d)
+    findeps(d, npnts, error, emin, emax)
+end
+
+function findeps(d::Dataset{T}, npnts::Integer, error::Integer, emin::T, emax::T)::T where T
+    orient(e::T, p::Point{T}) = orient3x3(det, e, d.line, p)
+    countpoints(e::T) = count(p -> orient(e, p) == 0, d.pnts)
+    
+    while true
+        e::T = (emin+emax)/2
+        n = countpoints(e)
+        if n < npnts - error
+            if emin == e
+                return emax
+            end
+            emin = e
+        elseif n > npnts + error
+            if emax == e
+                return emin
+            end
+            emax = e
+        else
+            return e
+        end
+    end
+end
+
 # scatter plot of points
 function plotclassification(data::Dataset{T}, config::AlgoConfig{T}) where T
     pnts = data.pnts
