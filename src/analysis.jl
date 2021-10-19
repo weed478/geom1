@@ -5,14 +5,10 @@ using ..Data
 using ..AnalysisHelpers
 
 using Plots
-
-import LinearAlgebra
-import Random
-
-const SEED = 42
+using BenchmarkTools
+using LinearAlgebra: det
 
 function gendatasets(::Type{T})::Vector{Dataset{T}} where T
-    Random.seed!(SEED)
     datagens = [
         gendataseta,
         gendatasetb,
@@ -20,6 +16,14 @@ function gendatasets(::Type{T})::Vector{Dataset{T}} where T
         gendatasetd,
     ]
     map(g -> g(T), datagens)
+end
+
+function benchmark()
+    d = gendataseta(Float64)
+    println("benchmark-builtin")
+    display(@benchmark $d.pnts .|> $(p -> orient2x2(det, d.etyp, d.line, p)))
+    println("benchmark-manual")
+    display(@benchmark $d.pnts .|> $(p -> orient2x2(manualdet, d.etyp, d.line, p)))
 end
 
 function plotdatasets()
@@ -44,20 +48,23 @@ end
 function basicclassification()
     Ts = [Float32, Float64]
     orients = [orient2x2, orient3x3]
-    dets = [LinearAlgebra.det, manualdet]
+    dets = [det, manualdet]
     datasets = gendatasets(Float32)
 
-    for d=datasets, T=Ts, orient=orients, det=dets
+    for d=datasets, T=Ts
         d = Dataset(T, d)
-        plotclassification(
-            d,
-            AlgoConfig{T}(
-                orient,
-                det,
-                d.etyp,
-                "$T-$orient-$det"
+        e = findeps(d, 6, 0)
+        for orient=orients, detfn=dets
+            plotclassification(
+                d,
+                AlgoConfig{T}(
+                    orient,
+                    detfn,
+                    e,
+                    "$T-$orient-$detfn-$e"
+                )
             )
-        )
+        end
     end
 end
 
@@ -164,24 +171,25 @@ function detcomp()
 end
 
 function typecomp()
-    for d=gendatasets(Float32), det=[LinearAlgebra.det, manualdet], orient=[orient2x2, orient3x3]
-        T = Float32
+    for d=gendatasets(Float64), det=[LinearAlgebra.det, manualdet], orient=[orient2x2, orient3x3]
         U = Float64
-        plotcomparison(
-            d,
-            AlgoConfig{T}(
-                orient,
-                det,
-                T(d.etyp),
-                "$T-$orient-$det"
-            ),
-            AlgoConfig{U}(
-                orient,
-                det,
-                U(d.etyp),
-                "$U-$orient-$det"
+        for T=[Float16, Float32]
+            plotcomparison(
+                d,
+                AlgoConfig{T}(
+                    orient,
+                    det,
+                    T(d.etyp),
+                    "$T-$orient-$det"
+                ),
+                AlgoConfig{U}(
+                    orient,
+                    det,
+                    U(d.etyp),
+                    "$U-$orient-$det"
+                )
             )
-        )
+        end
     end
 end
 

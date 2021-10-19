@@ -18,6 +18,7 @@ struct Dataset{T}
     emin::T
     emax::T
     markersize::Integer
+    linemarkersize::Integer
 end
 
 Dataset(
@@ -27,7 +28,8 @@ Dataset(
     etyp::T,
     emin::T,
     emax::T,
-    markersize::Integer
+    markersize::Integer,
+    linemarkersize::Integer
 ) where T = Dataset{T}(
     name,
     pnts,
@@ -35,7 +37,8 @@ Dataset(
     etyp,
     emin,
     emax,
-    markersize
+    markersize,
+    linemarkersize
 )
 
 Dataset(::Type{T}, d::Dataset{T}) where T = d
@@ -46,7 +49,8 @@ Dataset(::Type{T}, d::Dataset) where T = Dataset{T}(
     T(d.etyp),
     T(d.emin),
     T(d.emax),
-    d.markersize
+    d.markersize,
+    d.linemarkersize
 )
 
 # generate n random numbers in range [lo,hi]
@@ -99,7 +103,8 @@ function gendataseta(::Type{T})::Dataset{T} where T
         T(100),
         T(0),
         T(200),
-        1
+        1, # markersize
+        4 # linemarkersize
     )
 end
 
@@ -118,7 +123,8 @@ function gendatasetb(::Type{T})::Dataset{T} where T
         T(10e12),
         T(1e12),
         T(20e12),
-        1
+        1, # markersize
+        4 # linemarkersize
     )
 end
 
@@ -137,7 +143,8 @@ function gendatasetc(::Type{T})::Dataset{T} where T
         T(10),
         T(0),
         T(250),
-        2
+        2, # markersize
+        3 # linemarkersize
     )
 end
 
@@ -162,7 +169,8 @@ function gendatasetd(::Type{T})::Dataset{T} where T
         T(1e-15),
         T(0),
         T(2e-14),
-        2
+        2, # markersize
+        2 # linemarkersize
     )
 end
 

@@ -2,6 +2,8 @@ module AnalysisHelpers
 
 export AlgoConfig,
        manualdet,
+       findepsrange,
+       findeps,
        plotclassification,
        plotepsilon,
        plotcomparison
@@ -72,23 +74,32 @@ function findeps(d::Dataset{T}, npnts::Integer, error::Integer, emin::T, emax::T
     orient(e::T, p::Point{T}) = orient3x3(det, e, d.line, p)
     countpoints(e::T) = count(p -> orient(e, p) == 0, d.pnts)
     
+    e::T = (emin+emax)/2
+    
     while true
-        e::T = (emin+emax)/2
+        e = (emin+emax)/2
         n = countpoints(e)
         if n < npnts - error
             if emin == e
-                return emax
+                e = emax
+                break
             end
             emin = e
         elseif n > npnts + error
             if emax == e
-                return emin
+                e = emin
             end
             emax = e
         else
-            return e
+            break
         end
     end
+
+    while countpoints(e) < npnts - error
+        e = nextfloat(e)
+    end
+
+    e
 end
 
 # scatter plot of points
@@ -101,7 +112,6 @@ function plotclassification(data::Dataset{T}, config::AlgoConfig{T}) where T
 
     title = "class-$(data.name)-$(config.name)"
     println(title)
-
 
     # split points into 3 vectors based on orientation
 
@@ -117,42 +127,6 @@ function plotclassification(data::Dataset{T}, config::AlgoConfig{T}) where T
         orient(P) > 0
     end
 
-    # plot with all points (colors representing classes) and the line used for classification
-    pltcombined = plot(
-        ratio=1,
-        dpi=DPI,
-        title=title,
-    )
-
-    scatter!(pltcombined,
-        Tuple.(pntsneg),
-        color=:green,
-        label="neg",
-        markersize=data.markersize,
-        markeropacity=0.4,
-        markerstrokewidth=0,
-    )
-
-    scatter!(pltcombined,
-        Tuple.(pntspos),
-        color=:blue,
-        label="pos",
-        markersize=data.markersize,
-        markeropacity=0.4,
-        markerstrokewidth=0,
-    )
-
-    scatter!(pltcombined,
-        Tuple.(pntsline),
-        color=:red,
-        label="on line",
-        markersize=data.markersize,
-        markeropacity=0.4,
-        markerstrokewidth=0,
-    )
-
-    # overlay the line
-
     # get area left/right bounds
     x1 = minimum(getfield.(pnts, :x))
     x2 = maximum(getfield.(pnts, :x))
@@ -160,63 +134,80 @@ function plotclassification(data::Dataset{T}, config::AlgoConfig{T}) where T
     # move points away from eachother
     x1 += T(.1) * (x1 - x2)
     x2 += T(.1) * (x2 - x1)
-    
-    # draw line using 2 points
-    f = tofunction(AB)
-    plot!(pltcombined,
-        [(x1, f(x1)), (x2, f(x2))],
-        lw=6,
-        opacity=0.2,
-        color=:black,
-        label="line",
+
+    # plot with all points (colors representing classes) and the line used for classification
+    plot(
+        ratio=1,
+        title=title,
+        lims=(x1, x2),
     )
 
-    # individual plots
-
-    pltneg = scatter(
+    scatter!(
         Tuple.(pntsneg),
-        markersize=data.markersize,
-        markeropacity=0.4,
-        markerstrokewidth=0,
-        lims=(x1, x2),
-        color=:green,
+        color=:black,
         label="neg",
-        ratio=1,
-        dpi=DPI,
-        title=title,
+        markersize=data.markersize,
+        markerstrokewidth=0,
     )
 
-    pltpos = scatter(
+    scatter!(
         Tuple.(pntspos),
-        markersize=data.markersize,
-        markeropacity=0.4,
-        markerstrokewidth=0,
-        lims=(x1, x2),
-        color=:blue,
+        color=:gray,
         label="pos",
-        ratio=1,
-        dpi=DPI,
-        title=title,
+        markersize=data.markersize,
+        markerstrokewidth=0,
     )
 
-    pltline = scatter(
+    scatter!(
         Tuple.(pntsline),
-        markersize=data.markersize,
-        markeropacity=0.4,
-        markerstrokewidth=0,
-        lims=(x1, x2),
         color=:red,
         label="on line",
+        markersize=data.linemarkersize,
+        markerstrokewidth=0,
+    )
+
+    savefig("output/$title-1combined.png")
+
+    # plots with individual classes
+
+    scatter(
+        Tuple.(pntsline),
+        color=:red,
+        label="on line",
+        markersize=data.linemarkersize,
+        markerstrokewidth=0,
+        lims=(x1, x2),
         ratio=1,
-        dpi=DPI,
         title=title,
     )
 
-    # save final plots
-    savefig(pltcombined, "output/$title-1combined.png")
-    savefig(pltpos, "output/$title-3pos.png")
-    savefig(pltneg, "output/$title-4neg.png")
-    savefig(pltline, "output/$title-2line.png")
+    savefig("output/$title-2line.png")
+
+    scatter(
+        Tuple.(pntsneg),
+        color=:black,
+        label="neg",
+        markersize=data.markersize,
+        markerstrokewidth=0,
+        lims=(x1, x2),
+        ratio=1,
+        title=title,
+    )
+
+    savefig("output/$title-3neg.png")
+
+    scatter(
+        Tuple.(pntspos),
+        color=:gray,
+        label="pos",
+        markersize=data.markersize,
+        markerstrokewidth=0,
+        lims=(x1, x2),
+        ratio=1,
+        title=title,
+    )
+
+    savefig("output/$title-4pos.png")
 end
 
 # plot epsilon vs number of points where abs(det) < epsilon
