@@ -14,6 +14,7 @@ function main()
         Analysis.benchmark,
         Analysis.plotdatasets,
         Analysis.basicclassification,
+        Analysis.maketables,
         # Analysis.epsilonvpoints,
         # Analysis.widerdiff,
         # Analysis.detcomp,

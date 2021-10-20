@@ -7,6 +7,8 @@ using ..AnalysisHelpers
 using Plots
 using BenchmarkTools
 using LinearAlgebra: det
+using DataFrames
+using CSV
 
 function gendatasets(::Type{T})::Vector{Dataset{T}} where T
     datagens = [
@@ -65,6 +67,52 @@ function basicclassification()
                 )
             )
         end
+    end
+end
+
+function maketables()
+    datasets = gendatasets(Float32)
+    Ts = [Float32, Float64]
+    orients = [orient2x2, orient3x3]
+    dets = [det, manualdet]
+
+    getstats(d, orient) =
+        count(d.pnts) do P
+            orient(P) < 0
+        end,
+        count(d.pnts) do P
+            orient(P) == 0
+        end,
+        count(d.pnts) do P
+            orient(P) > 0
+        end
+    
+    for d=datasets
+        title = "table-$(d.name)"
+        println(title)
+
+        emin, emax = findepsrange(d)
+        expmin = floor(Int, max(1.f-38, emin) |> log10)
+        expmax = ceil(Int, min(1.f38, emax) |> log10)
+
+        df = DataFrame()
+
+        for e in 10.f0 .^ (expmin:expmax)
+            row = DataFrame(:e => e)
+            for T=Ts
+                d = Dataset(T, d)
+                e = T(e)
+                for orient=orients, detfn=dets
+                    neg, line, pos = getstats(d, P -> orient(detfn, e, d.line, P))
+                    insertcols!(row, "$T-$orient-$detfn-neg" => neg)
+                    insertcols!(row, "$T-$orient-$detfn-line" => line)
+                    insertcols!(row, "$T-$orient-$detfn-pos" => pos)
+                end
+            end
+            df = vcat(df, row)
+        end
+
+        CSV.write("output/$title.csv", df)
     end
 end
 
