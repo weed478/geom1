@@ -90,7 +90,7 @@ function maketables()
     for d=datasets
         title = "table-$(d.name)"
         println(title)
-
+        
         emin, emax = findepsrange(d)
         expmin = floor(Int, max(1.f-38, emin) |> log10)
         expmax = ceil(Int, min(1.f38, emax) |> log10)
@@ -104,15 +104,13 @@ function maketables()
                 e = T(e)
                 for orient=orients, detfn=dets
                     neg, line, pos = getstats(d, P -> orient(detfn, e, d.line, P))
-                    insertcols!(row, "$T-$orient-$detfn-neg" => neg)
-                    insertcols!(row, "$T-$orient-$detfn-line" => line)
-                    insertcols!(row, "$T-$orient-$detfn-pos" => pos)
+                    insertcols!(row, "$T-$orient-$detfn" => line)
                 end
             end
             df = vcat(df, row)
         end
 
-        CSV.write("output/$title.csv", df)
+        CSV.write("output/$title-tex.txt", df, delim='&', newline="\\\\\n")
     end
 end
 
