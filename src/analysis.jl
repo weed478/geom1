@@ -90,7 +90,7 @@ function maketables()
     for d=datasets
         title = "table-$(d.name)"
         println(title)
-        
+
         emin, emax = findepsrange(d)
         expmin = floor(Int, max(1.f-38, emin) |> log10)
         expmax = ceil(Int, min(1.f38, emax) |> log10)
@@ -112,6 +112,21 @@ function maketables()
 
         CSV.write("output/$title-tex.txt", df, delim='&', newline="\\\\\n")
     end
+end
+
+function ddoubleorder()
+    T = Float64
+    d = Dataset(T, gendatasetd(Float32))
+    e = findeps(d, 50, 0)
+    plotclassification(
+        d,
+        AlgoConfig{T}(
+            orient3x3,
+            det,
+            e,
+            "D-double-order"
+        )
+    )
 end
 
 function epsilonvpoints()
