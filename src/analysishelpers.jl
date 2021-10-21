@@ -34,6 +34,7 @@ function manualdet(M::Matrix{T})::T where T
     end
 end
 
+# find min (no points on line) and max (all points on line) eps
 function findepsrange(d::Dataset{T})::Tuple{T, T} where T
     orient(e::T, p::Point{T}) = orient3x3(det, e, d.line, p)
     countpoints(e::T) = count(p -> orient(e, p) == 0, d.pnts)
@@ -70,6 +71,7 @@ function findeps(d::Dataset{T}, npnts::Integer, error::Integer)::T where T
     findeps(d, npnts, error, emin, emax)
 end
 
+# binary search to find eps which detects n points (+/- error)
 function findeps(d::Dataset{T}, npnts::Integer, error::Integer, emin::T, emax::T)::T where T
     orient(e::T, p::Point{T}) = orient3x3(det, e, d.line, p)
     countpoints(e::T) = count(p -> orient(e, p) == 0, d.pnts)

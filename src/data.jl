@@ -1,5 +1,7 @@
 module Data
 
+# Datasets
+
 export Dataset,
        convertdataset,
        gendataseta,
@@ -42,6 +44,7 @@ Dataset(
     linemarkersize
 )
 
+# conversion
 Dataset(::Type{T}, d::Dataset{T}) where T = d
 Dataset(::Type{T}, d::Dataset) where T = Dataset{T}(
     d.name,
@@ -88,6 +91,8 @@ function genpoints(::Type{T}, circ::Circle{T}, n::Integer)::Vector{Point{T}} whe
 
     Point.(zip(xs, ys)) |> collect
 end
+
+# dataset generators
 
 function gendataseta(::Type{T})::Dataset{T} where T
     Random.seed!(42)

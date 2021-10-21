@@ -1,5 +1,7 @@
 module Geometry
 
+# Basic functions and structs
+
 export Point,
        Rect,
        Circle,
