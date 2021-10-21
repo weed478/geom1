@@ -9,6 +9,7 @@ using BenchmarkTools
 using LinearAlgebra: det
 using DataFrames
 using CSV
+import Random
 
 function gendatasets(::Type{T})::Vector{Dataset{T}} where T
     datagens = [
@@ -125,6 +126,42 @@ function ddoubleorder()
             det,
             e,
             "D-double-order"
+        )
+    )
+end
+
+function weirdadet()
+    plotcomparison(
+        gendataseta(Float32),
+        AlgoConfig{Float32}(
+            orient2x2,
+            det,
+            1000,
+            "weird-det-det"
+        ),
+        AlgoConfig{Float32}(
+            orient2x2,
+            manualdet,
+            1000,
+            "manual"
+        )
+    )
+end
+
+function weirdbalgos()
+    plotcomparison(
+        gendatasetb(Float32),
+        AlgoConfig{Float64}(
+            orient2x2,
+            manualdet,
+            1.0f10,
+            "weird-algo-2x2"
+        ),
+        AlgoConfig{Float64}(
+            orient3x3,
+            manualdet,
+            1.0f10,
+            "3x3"
         )
     )
 end

@@ -8,6 +8,7 @@ export Dataset,
        gendatasetd
 
 using ..Geometry
+import Random
 
 struct Dataset{T}
     name::String
@@ -89,6 +90,7 @@ function genpoints(::Type{T}, circ::Circle{T}, n::Integer)::Vector{Point{T}} whe
 end
 
 function gendataseta(::Type{T})::Dataset{T} where T
+    Random.seed!(42)
     Dataset{T}(
         "A",
         genpoints(
@@ -109,6 +111,7 @@ function gendataseta(::Type{T})::Dataset{T} where T
 end
 
 function gendatasetb(::Type{T})::Dataset{T} where T
+    Random.seed!(42)
     Dataset{T}(
         "B",
         genpoints(
@@ -129,6 +132,7 @@ function gendatasetb(::Type{T})::Dataset{T} where T
 end
 
 function gendatasetc(::Type{T})::Dataset{T} where T
+    Random.seed!(42)
     Dataset{T}(
         "C",
         genpoints(
@@ -149,6 +153,8 @@ function gendatasetc(::Type{T})::Dataset{T} where T
 end
 
 function gendatasetd(::Type{T})::Dataset{T} where T
+    Random.seed!(42)
+    
     # gen X coords
     xs = uniformrandom(T, 1000, T(-1000), T(1000))
 

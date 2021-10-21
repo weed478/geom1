@@ -16,6 +16,8 @@ function main()
         Analysis.basicclassification,
         Analysis.maketables,
         Analysis.ddoubleorder,
+        Analysis.weirdadet,
+        Analysis.weirdbalgos,
         # Analysis.epsilonvpoints,
         # Analysis.widerdiff,
         # Analysis.detcomp,
